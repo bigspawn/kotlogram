@@ -227,7 +227,7 @@ class MTProtoHandler {
                                                                                  message)
 
         sendMessage(encryptedMessage.data)
-        sentMessageList.add(message)
+//        sentMessageList.add(message)
     }
 
     /** Sends the given [ByteArray] message as is*/
