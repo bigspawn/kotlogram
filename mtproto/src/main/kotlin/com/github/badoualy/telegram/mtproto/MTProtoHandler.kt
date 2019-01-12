@@ -87,7 +87,7 @@ class MTProtoHandler {
         MTProtoWatchdog.start(connection!!)
                 .observeOn(Schedulers.computation())
                 .subscribe({ onMessageReceived(it) },
-                           { onErrorReceived(it) })
+                        { onErrorReceived(it) })
     }
 
     private fun stopWatchdog() = MTProtoWatchdog.stop(connection!!)
@@ -150,8 +150,8 @@ class MTProtoHandler {
         synchronized(requestQueue) {
             logger.debug(session.marker, "Queued $method with validityTimeout of $validityTimeout")
             requestQueue.add(QueuedMethod(method,
-                                          System.currentTimeMillis() + validityTimeout,
-                                          subscriber))
+                    System.currentTimeMillis() + validityTimeout,
+                    subscriber))
         }
     }.map { it.response }.timeout(timeout, TimeUnit.MILLISECONDS)
 
@@ -202,11 +202,11 @@ class MTProtoHandler {
                 val s = subscriber as Subscriber<TLMethod<*>>
                 methods.forEach { method ->
                     val mtMessage = MTMessage(session.generateMessageId(),
-                                              session.generateSeqNo(method),
-                                              method.serialize())
+                            session.generateSeqNo(method),
+                            method.serialize())
                     mtMessages.add(mtMessage)
                     logger.info(session.marker,
-                                "Sending method $method with msgId ${mtMessage.messageId} and seqNo ${mtMessage.seqNo}")
+                            "Sending method $method with msgId ${mtMessage.messageId} and seqNo ${mtMessage.seqNo}")
 
                     subscriberMap.put(mtMessage.messageId, s)
                     requestMap.put(mtMessage.messageId, method)
@@ -218,8 +218,8 @@ class MTProtoHandler {
                     val container = MTMessagesContainer()
                     container.messages.addAll(mtMessages)
                     sendMessage(MTMessage(session.generateMessageId(),
-                                          session.generateSeqNo(container),
-                                          container.serialize()))
+                            session.generateSeqNo(container),
+                            container.serialize()))
                 } else {
                     logger.debug(session.marker, "Sending single method")
                     sendMessage(mtMessages.first())
@@ -266,8 +266,8 @@ class MTProtoHandler {
         if (startTimer) {
             try {
                 bufferTimeoutTask = MTProtoTimer.schedule(ACK_BUFFER_TIMEOUT,
-                                                          { onBufferTimeout(id) })
-            } catch(e: IllegalStateException) {
+                        { onBufferTimeout(id) })
+            } catch (e: IllegalStateException) {
                 // TODO: remove Timer use
                 // Timer already cancelled.
             }
@@ -316,11 +316,11 @@ class MTProtoHandler {
         val ackMessage = MTMsgsAck(messagesId)
         val ackMessageId = session.generateMessageId()
         logger.debug(session.marker,
-                     "Sending ack for messages ${messagesId.joinToString(", ")} with ackMsgId $ackMessageId")
+                "Sending ack for messages ${messagesId.joinToString(", ")} with ackMsgId $ackMessageId")
         // TODO: get message queue
         sendMessage(MTMessage(ackMessageId,
-                              session.generateSeqNo(ackMessage),
-                              ackMessage.serialize()))
+                session.generateSeqNo(ackMessage),
+                ackMessage.serialize()))
     }
 
     /**
@@ -331,13 +331,14 @@ class MTProtoHandler {
     @Throws(IOException::class)
     private fun sendMessage(message: MTMessage) {
         logger.debug(session.marker,
-                     "Sending message with msgId ${message.messageId} and seqNo ${message.seqNo}")
+                "Sending message with msgId ${message.messageId} and seqNo ${message.seqNo}")
         val encryptedMessage = MTProtoMessageEncryption.encrypt(authKey!!,
-                                                                session.id,
-                                                                session.salt,
-                                                                message)
+                session.id,
+                session.salt,
+                message)
         sendData(encryptedMessage.data)
         sentMessageList.add(message)
+        logger.info("SM -- Send message size: " + sentMessageList.size)
     }
 
     /**
@@ -364,10 +365,10 @@ class MTProtoHandler {
         if (toAckList?.size ?: 0 > 0) {
             val ack = MTMsgsAck(toAckList!!.toLongArray())
             val ackMessage = MTMessage(session.generateMessageId(),
-                                       session.generateSeqNo(ack),
-                                       ack.serialize())
+                    session.generateSeqNo(ack),
+                    ack.serialize())
             logger.debug(session.marker,
-                         "Building ack for messages ${toAckList!!.joinToString(", ")} with msgId ${ackMessage.messageId} and seqNo ${ackMessage.seqNo}")
+                    "Building ack for messages ${toAckList!!.joinToString(", ")} with msgId ${ackMessage.messageId} and seqNo ${ackMessage.seqNo}")
             return ackMessage
         }
 
@@ -387,7 +388,7 @@ class MTProtoHandler {
                     request = requestQueue.remove()
                     if (request.validityTimeout < time) {
                         logger.debug(session.marker,
-                                     "Queued method ${request.method} timed out, dropping")
+                                "Queued method ${request.method} timed out, dropping")
                         request.subscriber.onCompleted()
                     } else {
                         toSend!!.add(request)
@@ -430,19 +431,19 @@ class MTProtoHandler {
 
             message = MTProtoMessageEncryption.decrypt(authKey!!, session.id, bytes)
             logger.debug(session.marker,
-                         "Received msg ${message.messageId} with seqNo ${message.seqNo}")
+                    "Received msg ${message.messageId} with seqNo ${message.seqNo}")
 
             // Check if is a container
             when (StreamUtils.readInt(message.payload)) {
                 MTMessagesContainer.CONSTRUCTOR_ID -> {
                     logger.trace(session.marker, "Message is a container")
                     val container = mtProtoContext.deserializeMessage(message.payload,
-                                                                      MTMessagesContainer::class.java,
-                                                                      MTMessagesContainer.CONSTRUCTOR_ID)
+                            MTMessagesContainer::class.java,
+                            MTMessagesContainer.CONSTRUCTOR_ID)
                     logger.trace(session.marker, "Container has ${container.messages.size} items")
                     if (container.messages.firstOrNull() { m -> m.messageId >= message.messageId } != null) {
                         logger.warn(session.marker,
-                                    "Message contained in container has a same or greater msgId than container, ignoring whole container")
+                                "Message contained in container has a same or greater msgId than container, ignoring whole container")
                         throw SecurityException("Message contained in container has a same or greater msgId than container, ignoring whole container")
                     }
 
@@ -479,7 +480,9 @@ class MTProtoHandler {
         when (messageContent) {
             is MTMsgsAck -> {
                 logger.debug(session.marker,
-                             "Received ack for ${messageContent.messages.joinToString(", ")}")
+                        "Received ack for ${messageContent.messages.joinToString(", ")}")
+                messageContent.messages.forEach { mId -> sentMessageList.removeIf { mId == it.messageId } }
+                logger.info("ASK -- Send message size: " + sentMessageList.size)
                 // TODO check missing ack ?
             }
             is MTRpcResult -> {
@@ -505,11 +508,11 @@ class MTProtoHandler {
                 val sentMessage = sentMessageList.filter { it.messageId == messageContent.badMsgId }.firstOrNull()
                 if (sentMessage != null) {
                     logger.warn(session.marker,
-                                "Re-sending message ${messageContent.badMsgId} with new salt")
+                            "Re-sending message ${messageContent.badMsgId} with new salt")
                     sendMessage(sentMessage)
                 } else {
                     logger.error(session.marker,
-                                 "Couldn't find sentMessage in history with msgId ${messageContent.badMsgId}, can't re-send with good salt")
+                            "Couldn't find sentMessage in history with msgId ${messageContent.badMsgId}, can't re-send with good salt")
                 }
             }
             is MTNeedResendMessage -> {
@@ -530,7 +533,7 @@ class MTProtoHandler {
             }
             else -> {
                 logger.error(session.marker,
-                             "Unsupported constructor in handleMessage() $messageContent: ${messageContent.javaClass.simpleName}")
+                        "Unsupported constructor in handleMessage() $messageContent: ${messageContent.javaClass.simpleName}")
                 throw IllegalStateException("Unsupported constructor in handleMessage() $messageContent: ${messageContent.javaClass.simpleName}")
             }
         }
@@ -556,11 +559,11 @@ class MTProtoHandler {
                     requestMap.put(sentMessage.messageId, request)
 
                     logger.debug(session.marker,
-                                 "Re-sending message ${badMessage.badMsgId} with new msgId ${sentMessage.messageId}")
+                            "Re-sending message ${badMessage.badMsgId} with new msgId ${sentMessage.messageId}")
                     sendMessage(sentMessage)
                 } else {
                     logger.error(session.marker,
-                                 "Couldn't find sentMessage in history with msgId ${badMessage.badMsgId}, can't re-send with good msgId")
+                            "Couldn't find sentMessage in history with msgId ${badMessage.badMsgId}, can't re-send with good msgId")
                 }
             }
             MTBadMessage.ERROR_SEQNO_TOO_LOW, MTBadMessage.ERROR_SEQNO_TOO_HIGH -> {
@@ -573,11 +576,11 @@ class MTProtoHandler {
                 val sentMessage = sentMessageList.filter { it.messageId == badMessage.badMsgId }.firstOrNull()
                 if (sentMessage != null) {
                     logger.warn(session.marker,
-                                "Re-sending message ${badMessage.badMsgId} with new seqno")
+                            "Re-sending message ${badMessage.badMsgId} with new seqno")
                     sendMessage(sentMessage)
                 } else {
                     logger.error(session.marker,
-                                 "Couldn't find sentMessage in history with msgId ${badMessage.badMsgId}, can't re-send with good seqno")
+                            "Couldn't find sentMessage in history with msgId ${badMessage.badMsgId}, can't re-send with good seqno")
                 }
             }
             MTBadMessage.ERROR_SEQNO_EXPECTED_EVEN -> {
@@ -613,7 +616,7 @@ class MTProtoHandler {
                     requestMap.remove(result.messageId)!!
                 } else {
                     logger.warn(session.marker,
-                                "No request object found for msgId ${result.messageId}")
+                            "No request object found for msgId ${result.messageId}")
                     null
                 }
 
@@ -623,9 +626,9 @@ class MTProtoHandler {
             val resultContent = mtProtoContext.deserializeMessage(result.content)
             if (resultContent is MTRpcError) {
                 logger.error(session.marker,
-                             "rpcError ${resultContent.errorCode}: ${resultContent.message}")
+                        "rpcError ${resultContent.errorCode}: ${resultContent.message}")
                 subscriber?.onError(RpcErrorException(resultContent.errorCode,
-                                                      resultContent.errorTag))
+                        resultContent.errorTag))
             } else
                 logger.error(session.marker, "Unsupported content $result")
         } else {
@@ -652,11 +655,12 @@ class MTProtoHandler {
 
         /** Thread pool to forward update callback */
         private val updatePool = ThreadPoolExecutor(4, 8,
-                                                    0L, TimeUnit.MILLISECONDS,
-                                                    LinkedBlockingQueue<Runnable>(),
-                                                    NamedThreadFactory("UpdatePool"))
+                0L, TimeUnit.MILLISECONDS,
+                LinkedBlockingQueue<Runnable>(),
+                NamedThreadFactory("UpdatePool"))
 
-        @JvmStatic val QUEUE_TYPE_DISCARD = 0
+        @JvmStatic
+        val QUEUE_TYPE_DISCARD = 0
         //@JvmStatic val QUEUE_TYPE_FLUSH = 1
 
         /** Shutdown all the threads and common resources associated to this instance */
