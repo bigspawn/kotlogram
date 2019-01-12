@@ -337,7 +337,9 @@ class MTProtoHandler {
                 session.salt,
                 message)
         sendData(encryptedMessage.data)
-        sentMessageList.add(message)
+        if (!sentMessageList.contains(message)) {
+            sentMessageList.add(message)
+        }
         logger.info("SM -- Send message size: " + sentMessageList.size)
     }
 
@@ -481,14 +483,11 @@ class MTProtoHandler {
             is MTMsgsAck -> {
                 logger.debug(session.marker,
                         "Received ack for ${messageContent.messages.joinToString(", ")}")
-                messageContent.messages.forEach { mId -> sentMessageList.removeIf { mId == it.messageId } }
-                logger.info("ASK -- Send message size: " + sentMessageList.size)
                 // TODO check missing ack ?
             }
             is MTRpcResult -> {
                 handleResult(messageContent)
                 sendMessageAck(message.messageId)
-                logger.info("MTRpcResult -- Send message size: " + sentMessageList.size)
             }
             is TLAbsUpdates -> {
                 updatePool.execute { apiCallback?.onUpdates(messageContent) }
@@ -645,8 +644,6 @@ class MTProtoHandler {
 
         if (subscriber != null && !subscriberMap.containsValue(subscriber))
             subscriber.onCompleted()
-
-        sentMessageList.removeIf { it.messageId == result.messageId }
     }
 
     companion object {
