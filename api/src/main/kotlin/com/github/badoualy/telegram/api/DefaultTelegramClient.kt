@@ -381,6 +381,10 @@ internal class DefaultTelegramClient internal constructor(val application: Teleg
         }
     }
 
+    override fun clearSentMessageList() {
+        mtProtoHandler?.clearSentMessageList()
+    }
+
     override fun onUpdates(update: TLAbsUpdates) {
         when (update) {
         // Multiple messages

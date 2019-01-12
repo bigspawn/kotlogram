@@ -1201,4 +1201,5 @@ public abstract class TelegramApiWrapper implements TelegramApi {
     public TLVector<TLAbsUser> usersGetUsers(TLVector<TLAbsInputUser> id) throws RpcErrorException, IOException {
         return (TLVector<TLAbsUser>) executeRpcQuery(new TLRequestUsersGetUsers(id));
     }
+
 }

@@ -646,6 +646,10 @@ class MTProtoHandler {
             subscriber.onCompleted()
     }
 
+    fun clearSentMessageList() {
+        sentMessageList.clear()
+    }
+
     companion object {
 
         private val logger = LoggerFactory.getLogger(MTProtoHandler::class.java)!!

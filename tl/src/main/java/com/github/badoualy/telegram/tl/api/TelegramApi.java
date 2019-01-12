@@ -511,4 +511,7 @@ public interface TelegramApi {
     TLUserFull usersGetFullUser(TLAbsInputUser id) throws RpcErrorException, IOException;
 
     TLVector<TLAbsUser> usersGetUsers(TLVector<TLAbsInputUser> id) throws RpcErrorException, IOException;
+
+    void clearSentMessageList();
+
 }
