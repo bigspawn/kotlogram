@@ -488,6 +488,7 @@ class MTProtoHandler {
             is MTRpcResult -> {
                 handleResult(messageContent)
                 sendMessageAck(message.messageId)
+                logger.info("MTRpcResult -- Send message size: " + sentMessageList.size)
             }
             is TLAbsUpdates -> {
                 updatePool.execute { apiCallback?.onUpdates(messageContent) }
@@ -644,6 +645,8 @@ class MTProtoHandler {
 
         if (subscriber != null && !subscriberMap.containsValue(subscriber))
             subscriber.onCompleted()
+
+        sentMessageList.removeIf { it.messageId == result.messageId }
     }
 
     companion object {
