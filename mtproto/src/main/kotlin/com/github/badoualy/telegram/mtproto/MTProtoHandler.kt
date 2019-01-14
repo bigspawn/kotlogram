@@ -300,7 +300,6 @@ class MTProtoHandler {
 
         if (flush) {
             sendMessagesAck(list!!.toLongArray())
-            clearSentMessageList()
         }
     }
 
@@ -320,7 +319,7 @@ class MTProtoHandler {
         logger.debug(session.marker,
                 "Sending ack for messages ${messagesId.joinToString(", ")} with ackMsgId $ackMessageId")
         // TODO: get message queue
-        sendMessage(MTMessage(ackMessageId,
+        sendMessageWithClearing(MTMessage(ackMessageId,
                 session.generateSeqNo(ackMessage),
                 ackMessage.serialize()))
     }
@@ -343,6 +342,13 @@ class MTProtoHandler {
             sentMessageList.add(message)
         }
         logger.info("SM -- Send message size: " + sentMessageList.size)
+    }
+
+    private fun sendMessageWithClearing(message: MTMessage) {
+        sendMessage(message)
+        logger.info("Before clearing ASK -> " + sentMessageList.size)
+        sentMessageList.clear()
+        logger.info("After clearing ASK -> " + sentMessageList.size)
     }
 
     /**
