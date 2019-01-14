@@ -298,8 +298,10 @@ class MTProtoHandler {
             bufferId++
         }
 
-        if (flush)
+        if (flush) {
             sendMessagesAck(list!!.toLongArray())
+            clearSentMessageList()
+        }
     }
 
     /**
